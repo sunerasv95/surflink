@@ -41,6 +41,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [homeBreak, setHomeBreak] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
   const filteredBreaks = useMemo(() => {
@@ -62,12 +63,15 @@ export default function Home() {
       setStatus("success");
       setEmail("");
       setHomeBreak("");
+      setErrorMessage("");
+
+      // Reset form after 5 seconds to show the input again
+      setTimeout(() => {
+        setStatus("idle");
+      }, 5000);
     } else {
       setStatus("error");
-      console.error(result.message);
-      // Optionally handle error state UI here
-      alert(result.message); // Simple feedback for now
-      setStatus("idle");
+      setErrorMessage(result.message || "Something went wrong. Please try again.");
     }
   };
 
@@ -102,76 +106,94 @@ export default function Home() {
 
         {/* Waitlist Form */}
         <div className="mt-12 w-full max-w-4xl mx-auto">
+          {/* CTA / Context Statement */}
+          <div className="mb-6 text-foreground/60 font-medium">
+            Be the first to know when we launch in your region.
+          </div>
+
           {status === "success" ? (
-            <div className="bg-ocean/10 border border-ocean/20 text-ocean p-6 rounded-2xl animate-fade-in">
+            <div className="bg-ocean/10 border border-ocean/20 text-ocean p-6 rounded-2xl animate-fade-in flex flex-col items-center gap-2">
               <p className="font-semibold text-lg">You're in the lineup! 🤙</p>
-              <p className="text-sm opacity-80">We'll let you know when the swell arrives in your area.</p>
+              <p className="text-sm opacity-80">We'll notify you when the swell arrives.</p>
+              <button
+                onClick={() => setStatus("idle")}
+                className="text-xs underline mt-2 hover:text-ocean/80"
+              >
+                Add another spot
+              </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 p-2 bg-white/50 backdrop-blur-sm border border-black/5 rounded-3xl shadow-sm">
-              <div className="flex-1 px-4 py-3 flex items-center gap-3 border-b md:border-b-0 md:border-r border-black/5 relative">
-                <svg className="w-5 h-5 text-ocean/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <div className="flex-grow relative">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+              <div className="flex flex-col md:flex-row gap-4 p-2 bg-white/50 backdrop-blur-sm border border-black/5 rounded-3xl shadow-sm">
+                <div className="flex-1 px-4 py-3 flex items-center gap-3 border-b md:border-b-0 md:border-r border-black/5 relative">
+                  <svg className="w-5 h-5 text-ocean/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <div className="flex-grow relative">
+                    <input
+                      type="text"
+                      placeholder="Where do you usually surf?"
+                      required
+                      value={homeBreak}
+                      onChange={(e) => setHomeBreak(e.target.value)}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                      className="w-full bg-transparent outline-none placeholder:text-foreground/40 text-foreground"
+                    />
+                    {isFocused && (
+                      <div className="absolute top-full left-0 w-full md:w-[300px] mt-2 bg-white rounded-xl shadow-xl border border-black/5 max-h-[300px] overflow-y-auto z-50">
+                        {filteredBreaks.length > 0 ? (
+                          filteredBreaks.map((group) => (
+                            <div key={group.region}>
+                              <div className="px-4 py-2 bg-sand text-xs font-bold text-foreground/50 uppercase tracking-wider sticky top-0">
+                                {group.region}
+                              </div>
+                              {group.breaks.map((breakName) => (
+                                <button
+                                  key={breakName}
+                                  type="button"
+                                  onClick={() => {
+                                    setHomeBreak(breakName);
+                                    setIsFocused(false);
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-ocean/10 text-sm transition-colors text-foreground/80 hover:text-ocean"
+                                >
+                                  {breakName}
+                                </button>
+                              ))}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-4 py-3 text-sm text-foreground/50 italic">
+                            No local spots found. Type to add usually...
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 px-4 py-3 flex items-center gap-3">
+                  <svg className="w-5 h-5 text-ocean/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                   <input
-                    type="text"
-                    placeholder="Where do you usually surf?"
+                    type="email"
+                    placeholder="Email Address"
                     required
-                    value={homeBreak}
-                    onChange={(e) => setHomeBreak(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-transparent outline-none placeholder:text-foreground/40 text-foreground"
                   />
-                  {isFocused && (
-                    <div className="absolute top-full left-0 w-full md:w-[300px] mt-2 bg-white rounded-xl shadow-xl border border-black/5 max-h-[300px] overflow-y-auto z-50">
-                      {filteredBreaks.length > 0 ? (
-                        filteredBreaks.map((group) => (
-                          <div key={group.region}>
-                            <div className="px-4 py-2 bg-sand text-xs font-bold text-foreground/50 uppercase tracking-wider sticky top-0">
-                              {group.region}
-                            </div>
-                            {group.breaks.map((breakName) => (
-                              <button
-                                key={breakName}
-                                type="button"
-                                onClick={() => {
-                                  setHomeBreak(breakName);
-                                  setIsFocused(false);
-                                }}
-                                className="w-full text-left px-4 py-2 hover:bg-ocean/10 text-sm transition-colors text-foreground/80 hover:text-ocean"
-                              >
-                                {breakName}
-                              </button>
-                            ))}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="px-4 py-3 text-sm text-foreground/50 italic">
-                          No local spots found. Type to add usually...
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="bg-foreground text-sand font-bold px-8 py-4 rounded-2xl hover:bg-ocean transition-all duration-300 disabled:opacity-70 flex items-center justify-center gap-2 min-w-[140px]"
+                >
+                  {status === "loading" ? "Joining..." : <>JOIN <span className="text-lg">→</span></>}
+                </button>
               </div>
-              <div className="flex-1 px-4 py-3 flex items-center gap-3">
-                <svg className="w-5 h-5 text-ocean/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent outline-none placeholder:text-foreground/40 text-foreground"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="bg-foreground text-sand font-bold px-8 py-4 rounded-2xl hover:bg-ocean transition-all duration-300 disabled:opacity-70 flex items-center justify-center gap-2 min-w-[140px]"
-              >
-                {status === "loading" ? "Joining..." : <>JOIN <span className="text-lg">→</span></>}
-              </button>
+              {status === "error" && (
+                <div className="text-red-500 text-sm px-4 text-center font-medium animate-pulse">
+                  {errorMessage}
+                </div>
+              )}
             </form>
           )}
         </div>
