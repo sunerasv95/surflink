@@ -10,10 +10,10 @@ export async function submitWaitlist(email: string, homeBreak: string): Promise<
         return { status: "error", message: "Email and Home Break are required." };
     }
 
-    const scriptUrl = process.env.GOOGLE_SHEETS_WEBAPP_URL;
+    const scriptUrl = process.env.NEXT_GOOGLE_SHEETS_WEBAPP_URL;
 
     if (!scriptUrl) {
-        console.error("GOOGLE_SHEETS_WEBAPP_URL is not defined");
+        console.error("NEXT_GOOGLE_SHEETS_WEBAPP_URL is not defined");
         return { status: "error", message: "Service configuration error." };
     }
 

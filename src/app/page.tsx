@@ -224,7 +224,7 @@ export default function Home() {
       </main>
 
       <footer className="w-full py-8 text-center text-foreground/40 text-sm">
-        <p>&copy; {new Date().getFullYear()} SurfLink. Regional Surf Network.</p>
+        <p>&copy; {new Date().getFullYear()} SurfLink. Link up with your local surf community.</p>
       </footer>
     </div>
   );
