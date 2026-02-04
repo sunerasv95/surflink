@@ -23,8 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${barlow.variable} antialiased`}>
-        {/* TODO: Replace with actual Measurement ID from env or config */}
-        <GoogleAnalytics gaId="G-PLACEHOLDER" />
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || ""} />
         {children}
       </body>
     </html>
