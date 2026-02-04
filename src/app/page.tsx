@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { submitWaitlist } from "./actions";
 
 const SURF_BREAKS = [
   {
@@ -55,14 +56,19 @@ export default function Home() {
     e.preventDefault();
     setStatus("loading");
 
-    // Simulate API call
-    console.log("Waitlist Submission:", { homeBreak, email });
+    const result = await submitWaitlist(email, homeBreak);
 
-    setTimeout(() => {
+    if (result.status === "success") {
       setStatus("success");
       setEmail("");
       setHomeBreak("");
-    }, 1000);
+    } else {
+      setStatus("error");
+      console.error(result.message);
+      // Optionally handle error state UI here
+      alert(result.message); // Simple feedback for now
+      setStatus("idle");
+    }
   };
 
   return (
